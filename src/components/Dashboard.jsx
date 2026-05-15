@@ -11,7 +11,8 @@ import {
   ChevronDown
 } from 'lucide-react'
 
-import { getQuotes, getNews } from '../lib/yahoo.js'
+import { getQuotes, getNews, getSparklines } from '../lib/yahoo.js'
+import Sparkline from './Sparkline.jsx'
 import { getWatchlist, removeFromWatchlist } from '../lib/watchlist.js'
 import { listSnapshots, loadSnapshot } from '../lib/history.js'
 import { isMaterialNews } from '../lib/news.js'
@@ -113,6 +114,16 @@ function getLatestScore(symbol) {
   return null
 }
 
+function SparklinePlaceholder({ width, height }) {
+  return (
+    <div
+      className="inline-block bg-line/20 rounded"
+      style={{ width, height }}
+      aria-hidden
+    />
+  )
+}
+
 function SortIcon({ active, dir }) {
   if (!active) return <span className="inline-block w-3" />
   return dir === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />
@@ -120,7 +131,9 @@ function SortIcon({ active, dir }) {
 
 export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onWatchlistMutate }) {
   const [indices, setIndices] = useState([])
+  const [indexSparklines, setIndexSparklines] = useState({})
   const [indicesLoading, setIndicesLoading] = useState(true)
+  const [watchSparklines, setWatchSparklines] = useState({})
   const [watchlist, setWatchlist] = useState([])
   const [watchQuotes, setWatchQuotes] = useState([])
   const [watchLoading, setWatchLoading] = useState(false)
@@ -141,8 +154,12 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
     async function loadIndices() {
       setIndicesLoading(true)
       try {
-        const q = await getQuotes(INDICES.map(i => i.symbol))
-        if (!cancelled) setIndices(q)
+        const syms = INDICES.map(i => i.symbol)
+        const [q, sp] = await Promise.all([getQuotes(syms), getSparklines(syms)])
+        if (!cancelled) {
+          setIndices(q)
+          setIndexSparklines(sp)
+        }
       } finally {
         if (!cancelled) setIndicesLoading(false)
       }
@@ -207,6 +224,19 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
       }
     }
     loadNews()
+    return () => { cancelled = true }
+  }, [watchlist, refreshKey])
+
+  useEffect(() => {
+    if (!watchlist.length) {
+      setWatchSparklines({})
+      return
+    }
+    let cancelled = false
+    const symbols = watchlist.map(w => w.symbol)
+    getSparklines(symbols).then(sp => {
+      if (!cancelled) setWatchSparklines(sp)
+    })
     return () => { cancelled = true }
   }, [watchlist, refreshKey])
 
@@ -336,6 +366,13 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
                     <div className={`font-mono text-sm mt-1 tabular-nums ${pctClass(chg)}`}>
                       {fmtPct(chg)}
                     </div>
+                    <div className="mt-2 opacity-90">
+                      {indexSparklines[meta.symbol] ? (
+                        <Sparkline data={indexSparklines[meta.symbol]} width={120} height={32} />
+                      ) : (
+                        <SparklinePlaceholder width={120} height={32} />
+                      )}
+                    </div>
                   </>
                 )}
               </div>
@@ -368,6 +405,7 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
                     { key: 'name', label: 'Name', align: 'left' },
                     { key: 'price', label: 'Price', align: 'right' },
                     { key: 'change', label: 'Day %', align: 'right' },
+                    { key: null, label: '30D', align: 'right' },
                     { key: 'score', label: 'Score', align: 'right' },
                     { key: null, label: 'Action', align: 'right' }
                   ].map(col => (
@@ -400,6 +438,13 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
                     <td className="py-2.5 px-2 text-right font-mono tabular-nums">{fmtPrice(row.price)}</td>
                     <td className={`py-2.5 px-2 text-right font-mono tabular-nums ${pctClass(row.changePct)}`}>
                       {fmtPct(row.changePct)}
+                    </td>
+                    <td className="py-2.5 px-2 text-right">
+                      {watchSparklines[row.symbol] ? (
+                        <Sparkline data={watchSparklines[row.symbol]} width={70} height={20} />
+                      ) : (
+                        <SparklinePlaceholder width={70} height={20} />
+                      )}
                     </td>
                     <td className="py-2.5 px-2 text-right font-mono tabular-nums">
                       {row.score != null ? Math.round(row.score) : '—'}

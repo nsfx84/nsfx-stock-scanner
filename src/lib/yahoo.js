@@ -16,7 +16,8 @@ const TTL = {
   earnings: 24 * 60 * 60 * 1000,
   search:   24 * 60 * 60 * 1000,
   news:     30 * 60 * 1000,
-  quotes:   60 * 1000
+  quotes:   60 * 1000,
+  sparklines: 60 * 60 * 1000
 }
 
 function cacheKey(fn, symbol) { return `yf:${fn}:${symbol || ''}` }
@@ -196,6 +197,21 @@ export async function getQuotes(symbols) {
     return out
   } catch {
     return []
+  }
+}
+
+export async function getSparklines(symbols) {
+  if (!symbols?.length) return {}
+  const sorted = [...symbols].map(s => String(s).trim()).filter(Boolean).sort()
+  const key = `yf:sparklines:${sorted.join(',')}`
+  const hit = readCache(key, TTL.sparklines)
+  if (hit) return hit
+  try {
+    const data = await get(`/sparklines?symbols=${encodeURIComponent(sorted.join(','))}`)
+    writeCache(key, data && typeof data === 'object' ? data : {})
+    return data && typeof data === 'object' ? data : {}
+  } catch {
+    return {}
   }
 }
 
