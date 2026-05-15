@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper, ArrowLeft, BarChart3 } from 'lucide-react'
+import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper, ArrowLeft, BarChart3, Bitcoin } from 'lucide-react'
 
 import SearchBar from './components/SearchBar.jsx'
 import ScoreCard from './components/ScoreCard.jsx'
@@ -13,6 +13,8 @@ import Screener from './components/Screener.jsx'
 import DividendView from './components/DividendView.jsx'
 import CommandPalette from './components/CommandPalette.jsx'
 import Backtest from './components/Backtest.jsx'
+import CryptoScreener from './components/CryptoScreener.jsx'
+import CryptoDetail from './components/CryptoDetail.jsx'
 
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
@@ -23,6 +25,7 @@ import DensityToggle from './components/DensityToggle.jsx'
 export default function App() {
   const [view, setView] = useState('single')   // 'single' | 'screener' | 'dividends' | 'news'
   const [symbol, setSymbol] = useState(null)
+  const [cryptoCoinId, setCryptoCoinId] = useState(null)
   const [overview, setOverview] = useState(null)
   const [points, setPoints] = useState(null)
   const [earnings, setEarnings] = useState(null)
@@ -193,6 +196,12 @@ export default function App() {
               }`}
             ><DollarSign size={14} /> Dividends</button>
             <button
+              onClick={() => { setView('crypto'); setCryptoCoinId(null) }}
+              className={`px-3 py-1 text-sm rounded flex items-center gap-1.5 ${
+                view === 'crypto' ? 'bg-accent text-black' : 'text-muted hover:text-white'
+              }`}
+            ><Bitcoin size={14} /> Crypto</button>
+            <button
               onClick={() => setView('news')}
               className={`px-3 py-1 text-sm rounded flex items-center gap-1.5 ${
                 view === 'news' ? 'bg-accent text-black' : 'text-muted hover:text-white'
@@ -229,6 +238,17 @@ export default function App() {
 
         {view === 'dividends' && (
           <DividendView onPickRow={(sym) => handleSelect(sym, '')} />
+        )}
+
+        {view === 'crypto' && !cryptoCoinId && (
+          <CryptoScreener onPickCoin={(id) => setCryptoCoinId(id)} />
+        )}
+
+        {view === 'crypto' && cryptoCoinId && (
+          <CryptoDetail
+            coinId={cryptoCoinId}
+            onBack={() => setCryptoCoinId(null)}
+          />
         )}
 
         {view === 'backtest' && (

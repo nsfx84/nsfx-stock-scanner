@@ -18,7 +18,9 @@ const TTL = {
   news:     30 * 60 * 1000,
   quotes:   60 * 1000,
   sparklines: 60 * 60 * 1000,
-  regime:   6 * 60 * 60 * 1000
+  regime:   6 * 60 * 60 * 1000,
+  cryptoMarkets: 30 * 60 * 1000,
+  cryptoCoin: 60 * 60 * 1000
 }
 
 function cacheKey(fn, symbol) { return `yf:${fn}:${symbol || ''}` }
@@ -240,6 +242,38 @@ export async function getNews(symbol) {
   } catch {
     return []
   }
+}
+
+export async function getCryptoMarkets() {
+  const key = 'crypto:markets'
+  const hit = readCache(key, TTL.cryptoMarkets)
+  if (hit) return { data: hit, fromCache: true }
+  const data = await get('/crypto?type=markets')
+  const list = Array.isArray(data) ? data : []
+  writeCache(key, list)
+  return { data: list, fromCache: false }
+}
+
+export async function getCryptoCoin(id) {
+  const slug = String(id || '').trim()
+  if (!slug) throw new Error('Missing coin id')
+  const key = `crypto:coin:${slug}`
+  const hit = readCache(key, TTL.cryptoCoin)
+  if (hit) return { data: hit, fromCache: true }
+  const data = await get(`/crypto?type=coin&id=${encodeURIComponent(slug)}`)
+  writeCache(key, data)
+  return { data, fromCache: false }
+}
+
+export function clearCryptoCache(id) {
+  if (id) {
+    localStorage.removeItem(`crypto:coin:${id}`)
+    return
+  }
+  localStorage.removeItem('crypto:markets')
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('crypto:coin:'))
+    .forEach(k => localStorage.removeItem(k))
 }
 
 export function clearCache(symbol) {
