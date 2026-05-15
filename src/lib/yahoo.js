@@ -15,7 +15,8 @@ const TTL = {
   overview: 6 * 60 * 60 * 1000,
   earnings: 24 * 60 * 60 * 1000,
   search:   24 * 60 * 60 * 1000,
-  news:     30 * 60 * 1000
+  news:     30 * 60 * 1000,
+  quotes:   60 * 1000
 }
 
 function cacheKey(fn, symbol) { return `yf:${fn}:${symbol || ''}` }
@@ -177,6 +178,22 @@ export async function getPeers(symbol) {
     const r = await get(`/peers/${symbol}`)
     writeCache(key, r.peers || [])
     return r.peers || []
+  } catch {
+    return []
+  }
+}
+
+export async function getQuotes(symbols) {
+  if (!symbols?.length) return []
+  const sorted = [...symbols].map(s => String(s).trim()).filter(Boolean).sort()
+  const key = `yf:quotes:${sorted.join(',')}`
+  const hit = readCache(key, TTL.quotes)
+  if (hit) return hit
+  try {
+    const r = await get(`/quotes?symbols=${encodeURIComponent(sorted.join(','))}`)
+    const out = r.quotes || []
+    writeCache(key, out)
+    return out
   } catch {
     return []
   }

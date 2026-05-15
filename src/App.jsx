@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash2, RefreshCw, AlertCircle, TrendingUp, Layers, Search, DollarSign, Newspaper } from 'lucide-react'
+import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper } from 'lucide-react'
 
 import SearchBar from './components/SearchBar.jsx'
 import ScoreCard from './components/ScoreCard.jsx'
@@ -8,14 +8,13 @@ import OverviewPanel from './components/OverviewPanel.jsx'
 import CompetitorTable from './components/CompetitorTable.jsx'
 import NewsPanel from './components/NewsPanel.jsx'
 import Watchlist from './components/Watchlist.jsx'
+import Dashboard from './components/Dashboard.jsx'
 import Screener from './components/Screener.jsx'
 import DividendView from './components/DividendView.jsx'
 
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
 import { addToWatchlist, removeFromWatchlist, isOnWatchlist, getWatchlist } from './lib/watchlist.js'
-
-const POPULAR = ['AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AVGO', 'LLY', 'JPM']
 
 export default function App() {
   const [view, setView] = useState('single')   // 'single' | 'screener' | 'dividends' | 'news'
@@ -177,31 +176,12 @@ export default function App() {
 
         {view === 'single' && !symbol && (
           <div className="grid md:grid-cols-[1fr_280px] gap-6">
-            <div>
-              <div className="bg-panel border border-line rounded-xl p-6">
-                <h2 className="text-xl font-semibold mb-2">Welcome</h2>
-                <p className="text-muted text-sm mb-4">
-                  Search a ticker or pick one below to see 5-year price history, fundamentals,
-                  competitors, and a transparent 0–100 score across four pillars.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {POPULAR.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => handleSelect(s, '')}
-                      className="bg-line hover:bg-accent hover:text-black text-sm font-mono px-3 py-1.5 rounded"
-                    >{s}</button>
-                  ))}
-                </div>
-                <div className="mt-6 p-3 border border-line rounded bg-line/20 text-xs text-muted flex gap-2">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <div>
-                    This is an educational research tool. Scores are heuristic and based on
-                    historical data — they do not predict future returns. Not financial advice.
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Dashboard
+              onPickRow={handleSelect}
+              onSwitchView={setView}
+              refreshKey={watchKey}
+              onWatchlistMutate={() => setWatchKey(k => k + 1)}
+            />
             <Watchlist
               onSelect={(s) => handleSelect(s, '')}
               refreshKey={watchKey}
