@@ -16,6 +16,8 @@ import CommandPalette from './components/CommandPalette.jsx'
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
 import { addToWatchlist, removeFromWatchlist, isOnWatchlist, getWatchlist } from './lib/watchlist.js'
+import { getDensity } from './lib/density.js'
+import DensityToggle from './components/DensityToggle.jsx'
 
 export default function App() {
   const [view, setView] = useState('single')   // 'single' | 'screener' | 'dividends' | 'news'
@@ -32,6 +34,10 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false)
 
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
+
+  useEffect(() => {
+    document.documentElement.dataset.density = getDensity()
+  }, [])
 
   useEffect(() => {
     if (!symbol) return
@@ -183,6 +189,7 @@ export default function App() {
           {view === 'single' && <SearchBar onSelect={handleSelect} />}
           <div className="ml-auto hidden md:flex items-center gap-2 text-xs text-muted">
             <span>Yahoo Finance · unlimited · cached locally</span>
+            <DensityToggle />
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}

@@ -9,3 +9,12 @@ html, body, #root { height: 100%; }
 ::-webkit-scrollbar-track { background: #0b1220; }
 ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 6px; }
 ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+/* Density: comfortable is default (no overrides) */
+[data-density="compact"] .bg-panel { padding: 0.75rem !important; }
+[data-density="compact"] .text-sm { font-size: 0.75rem; }
+[data-density="compact"] table td, [data-density="compact"] table th { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+
+[data-density="spacious"] .bg-panel { padding: 1.75rem !important; }
+[data-density="spacious"] .text-sm { font-size: 1rem; }
+[data-density="spacious"] table td, [data-density="spacious"] table th { padding-top: 0.75rem; padding-bottom: 0.75rem; }
