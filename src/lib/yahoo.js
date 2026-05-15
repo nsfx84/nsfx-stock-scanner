@@ -140,6 +140,22 @@ export async function searchSymbol(keywords) {
   return out
 }
 
+export async function getQuote(symbol) {
+  const sym = String(symbol || '').trim().toUpperCase()
+  if (!sym) return null
+  const key = cacheKey('quote', sym)
+  const hit = readCache(key, TTL.quotes)
+  if (hit) return hit
+  try {
+    const r = await get(`/quotes?symbols=${encodeURIComponent(sym)}`)
+    const q = (r.quotes || [])[0] || null
+    if (q) writeCache(key, q)
+    return q
+  } catch {
+    return null
+  }
+}
+
 export async function getOverview(symbol) {
   const key = cacheKey('overview', symbol)
   const hit = readCache(key, TTL.overview)
@@ -147,7 +163,7 @@ export async function getOverview(symbol) {
   // Pull quoteSummary + a quick quote so we have current price/name as a fallback
   const [qs, quote] = await Promise.all([
     get(`/overview/${symbol}`),
-    get(`/quote/${symbol}`).catch(() => null)
+    getQuote(symbol)
   ])
   const flat = flattenOverview(qs, quote)
   writeCache(key, flat)
