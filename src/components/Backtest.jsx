@@ -361,18 +361,23 @@ export default function Backtest() {
                   />
                   <ZAxis range={[40, 40]} />
                   <Tooltip
-                    contentStyle={{
-                      background: '#111827',
-                      border: '1px solid #1f2937',
-                      borderRadius: 8
-                    }}
-                    formatter={(v, name) => {
-                      if (name === 'returnPct') return [`${Number(v).toFixed(1)}%`, 'Return']
-                      return [v, name]
-                    }}
-                    labelFormatter={(_, payload) => {
-                      const p = payload?.[0]?.payload
-                      return p ? `${p.symbol} · score ${p.score}` : ''
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null
+                      const p = payload[0]?.payload
+                      if (!p) return null
+                      return (
+                        <div className="rounded-lg border border-line bg-panel px-3 py-2 text-xs shadow-lg">
+                          <p className="font-mono text-white">
+                            {p.symbol} · score {p.score}
+                          </p>
+                          <p className="text-muted mt-0.5">
+                            Return:{' '}
+                            <span className="font-mono text-accent">
+                              {Number(p.returnPct).toFixed(1)}%
+                            </span>
+                          </p>
+                        </div>
+                      )
                     }}
                   />
                   {spyPct != null && (

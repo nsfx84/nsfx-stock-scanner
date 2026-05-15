@@ -331,7 +331,7 @@ export default function App() {
       </main>
 
       <footer className="max-w-7xl mx-auto px-4 py-6 text-xs text-muted text-center">
-        Data: Alpha Vantage. Educational use only. Not investment advice.
+        Data: Yahoo Finance. Educational use only. Not investment advice.
       </footer>
 
     </div>
