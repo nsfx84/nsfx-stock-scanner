@@ -33,8 +33,6 @@ export default function App() {
   const [cacheNote, setCacheNote] = useState('')
   const [paletteOpen, setPaletteOpen] = useState(false)
 
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
-
   useEffect(() => {
     document.documentElement.dataset.density = getDensity()
   }, [])
@@ -92,19 +90,15 @@ export default function App() {
   }, [symbol])
 
   useEffect(() => {
-    function onKeyDown(e) {
+    function onKey(e) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         setPaletteOpen(o => !o)
       }
-      if (e.key === 'Escape' && paletteOpen) {
-        e.preventDefault()
-        setPaletteOpen(false)
-      }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [paletteOpen])
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   function pushRecentTicker(sym) {
     try {
@@ -148,6 +142,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onSelect={(sym) => {
+          handleSelect(sym, '')
+          setPaletteOpen(false)
+        }}
+        setView={(v) => {
+          setView(v)
+          if (v === 'single') setSymbol(null)
+          setPaletteOpen(false)
+        }}
+        watchlist={getWatchlist()}
+      />
       <header className="border-b border-line bg-panel/50 sticky top-0 backdrop-blur z-10">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
@@ -189,15 +197,16 @@ export default function App() {
           {view === 'single' && <SearchBar onSelect={handleSelect} />}
           <div className="ml-auto hidden md:flex items-center gap-2 text-xs text-muted">
             <span>Yahoo Finance · unlimited · cached locally</span>
-            <DensityToggle />
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="bg-line border border-line/50 text-muted px-1.5 py-0.5 rounded font-mono hover:text-white hover:border-line transition-colors"
-              title="Command palette"
+              className="hidden md:flex items-center gap-1 bg-line border border-line/50 text-muted hover:text-white text-xs px-2 py-1 rounded font-mono"
+              title="Open command palette"
             >
-              Press {isMac ? '⌘' : 'Ctrl'}K
+              <span>{navigator.platform.indexOf('Mac') >= 0 ? '⌘' : 'Ctrl'}</span>
+              <span>K</span>
             </button>
+            <DensityToggle />
           </div>
         </div>
       </header>
@@ -310,20 +319,6 @@ export default function App() {
         Data: Alpha Vantage. Educational use only. Not investment advice.
       </footer>
 
-      <CommandPalette
-        open={paletteOpen}
-        onClose={() => setPaletteOpen(false)}
-        onSelect={(sym) => {
-          handleSelect(sym, '')
-          setPaletteOpen(false)
-        }}
-        currentView={view}
-        setView={(v) => {
-          setView(v)
-          setPaletteOpen(false)
-        }}
-        watchlist={getWatchlist()}
-      />
     </div>
   )
 }
