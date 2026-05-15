@@ -158,10 +158,14 @@ export default function App() {
       />
       <header className="border-b border-line bg-panel/50 sticky top-0 backdrop-blur z-10">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setView('single'); setSymbol(null) }}
+            className="flex items-center gap-2 hover:opacity-80 transition"
+          >
             <TrendingUp className="text-accent" size={22} />
             <h1 className="font-bold">NSFX Stock Scanner</h1>
-          </div>
+          </button>
           <div className="flex gap-1 bg-ink border border-line rounded-lg p-1">
             <button
               onClick={() => {
