@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { useState } from 'react'
 
 function scoreColor(s) {
@@ -67,6 +67,38 @@ function PillarRow({ p }) {
   )
 }
 
+function FactorDisclosure() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="border-t border-line mt-4 pt-3">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 text-xs text-muted hover:text-white w-full text-left"
+      >
+        <Info size={14} className="shrink-0" />
+        <span>What does this score actually measure?</span>
+        {open ? <ChevronUp size={14} className="ml-auto" /> : <ChevronDown size={14} className="ml-auto" />}
+      </button>
+      {open && (
+        <div className="mt-3 space-y-2 text-xs text-muted leading-relaxed pl-5 border-l border-line/60">
+          <p>
+            This score rewards stocks with lower P/E, lower P/B, higher ROE, higher profit margin, and
+            consistent growth — i.e. value/quality factors.
+          </p>
+          <p>
+            Stocks scoring well are typically stable, profitable, reasonably-priced businesses. In market
+            regimes that reward growth and momentum (like the AI capex cycle), these stocks may underperform
+            high-multiple growth names that this score deliberately penalises.
+          </p>
+          <p>Use the score as a quality filter, not a buy signal.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ScoreCard({ result }) {
   if (!result) return null
   const { composite, pillars, verdict, coverage } = result
@@ -89,6 +121,7 @@ export default function ScoreCard({ result }) {
           </div>
         </div>
       </div>
+      <FactorDisclosure />
       <div className="mt-4">
         {pillars.map(p => <PillarRow key={p.key} p={p} />)}
       </div>

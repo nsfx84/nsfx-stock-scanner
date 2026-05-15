@@ -17,7 +17,8 @@ const TTL = {
   search:   24 * 60 * 60 * 1000,
   news:     30 * 60 * 1000,
   quotes:   60 * 1000,
-  sparklines: 60 * 60 * 1000
+  sparklines: 60 * 60 * 1000,
+  regime:   6 * 60 * 60 * 1000
 }
 
 function cacheKey(fn, symbol) { return `yf:${fn}:${symbol || ''}` }
@@ -212,6 +213,19 @@ export async function getSparklines(symbols) {
     return data && typeof data === 'object' ? data : {}
   } catch {
     return {}
+  }
+}
+
+export async function getRegime() {
+  const key = 'yf:regime'
+  const hit = readCache(key, TTL.regime)
+  if (hit) return hit
+  try {
+    const data = await get('/regime')
+    writeCache(key, data)
+    return data
+  } catch {
+    return null
   }
 }
 

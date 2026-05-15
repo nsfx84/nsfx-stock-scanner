@@ -13,6 +13,7 @@ import {
 
 import { getQuotes, getNews, getSparklines } from '../lib/yahoo.js'
 import Sparkline from './Sparkline.jsx'
+import RegimeIndicator from './RegimeIndicator.jsx'
 import { getWatchlist, removeFromWatchlist } from '../lib/watchlist.js'
 import { listSnapshots, loadSnapshot } from '../lib/history.js'
 import { isMaterialNews } from '../lib/news.js'
@@ -380,6 +381,8 @@ export default function Dashboard({ onPickRow, onSwitchView, refreshKey = 0, onW
           })}
         </div>
       </div>
+
+      <RegimeIndicator />
 
       {/* 3. Watchlist table */}
       <div className={`${CARD} p-5`}>
