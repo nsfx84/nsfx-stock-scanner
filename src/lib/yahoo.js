@@ -14,7 +14,8 @@ const TTL = {
   daily:    6 * 60 * 60 * 1000,
   overview: 6 * 60 * 60 * 1000,
   earnings: 24 * 60 * 60 * 1000,
-  search:   24 * 60 * 60 * 1000
+  search:   24 * 60 * 60 * 1000,
+  news:     30 * 60 * 1000
 }
 
 function cacheKey(fn, symbol) { return `yf:${fn}:${symbol || ''}` }
@@ -176,6 +177,19 @@ export async function getPeers(symbol) {
     const r = await get(`/peers/${symbol}`)
     writeCache(key, r.peers || [])
     return r.peers || []
+  } catch {
+    return []
+  }
+}
+
+export async function getNews(symbol) {
+  const key = cacheKey('news', symbol)
+  const hit = readCache(key, TTL.news)
+  if (hit) return hit
+  try {
+    const r = await get(`/news/${symbol}`)
+    writeCache(key, r.news || [])
+    return r.news || []
   } catch {
     return []
   }

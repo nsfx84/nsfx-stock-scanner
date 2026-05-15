@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash2, RefreshCw, AlertCircle, TrendingUp, Layers, Search, DollarSign } from 'lucide-react'
+import { Star, Trash2, RefreshCw, AlertCircle, TrendingUp, Layers, Search, DollarSign, Newspaper } from 'lucide-react'
 
 import SearchBar from './components/SearchBar.jsx'
 import ScoreCard from './components/ScoreCard.jsx'
 import PriceChart from './components/PriceChart.jsx'
 import OverviewPanel from './components/OverviewPanel.jsx'
 import CompetitorTable from './components/CompetitorTable.jsx'
+import NewsPanel from './components/NewsPanel.jsx'
 import Watchlist from './components/Watchlist.jsx'
 import Screener from './components/Screener.jsx'
 import DividendView from './components/DividendView.jsx'
 
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
-import { addToWatchlist, removeFromWatchlist, isOnWatchlist } from './lib/watchlist.js'
+import { addToWatchlist, removeFromWatchlist, isOnWatchlist, getWatchlist } from './lib/watchlist.js'
 
 const POPULAR = ['AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AVGO', 'LLY', 'JPM']
 
 export default function App() {
-  const [view, setView] = useState('single')   // 'single' | 'screener' | 'dividends'
+  const [view, setView] = useState('single')   // 'single' | 'screener' | 'dividends' | 'news'
   const [symbol, setSymbol] = useState(null)
   const [overview, setOverview] = useState(null)
   const [points, setPoints] = useState(null)
@@ -136,6 +137,12 @@ export default function App() {
                 view === 'dividends' ? 'bg-accent text-black' : 'text-muted hover:text-white'
               }`}
             ><DollarSign size={14} /> Dividends</button>
+            <button
+              onClick={() => setView('news')}
+              className={`px-3 py-1 text-sm rounded flex items-center gap-1.5 ${
+                view === 'news' ? 'bg-accent text-black' : 'text-muted hover:text-white'
+              }`}
+            ><Newspaper size={14} /> News</button>
           </div>
           {view === 'single' && <SearchBar onSelect={handleSelect} />}
           <div className="ml-auto text-xs text-muted hidden md:block">
@@ -151,6 +158,21 @@ export default function App() {
 
         {view === 'dividends' && (
           <DividendView onPickRow={(sym) => handleSelect(sym, '')} />
+        )}
+
+        {view === 'news' && (
+          <div className="grid md:grid-cols-[1fr_280px] gap-6">
+            <NewsPanel
+              symbols={getWatchlist().map(w => w.symbol)}
+              refreshKey={watchKey}
+              heading="Watchlist news"
+            />
+            <Watchlist
+              onSelect={(s) => handleSelect(s, '')}
+              refreshKey={watchKey}
+              onMutate={() => setWatchKey(k => k + 1)}
+            />
+          </div>
         )}
 
         {view === 'single' && !symbol && (
@@ -180,7 +202,11 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <Watchlist onSelect={(s) => handleSelect(s, '')} refreshKey={watchKey} />
+            <Watchlist
+              onSelect={(s) => handleSelect(s, '')}
+              refreshKey={watchKey}
+              onMutate={() => setWatchKey(k => k + 1)}
+            />
           </div>
         )}
 
@@ -215,10 +241,15 @@ export default function App() {
               {points     && <PriceChart points={points} />}
               {overview   && <OverviewPanel overview={overview} />}
               {overview   && <CompetitorTable symbol={symbol} />}
+              {overview   && <NewsPanel symbol={symbol} refreshKey={watchKey} />}
             </div>
 
             <div className="space-y-4">
-              <Watchlist onSelect={(s) => handleSelect(s, '')} refreshKey={watchKey} />
+              <Watchlist
+                onSelect={(s) => handleSelect(s, '')}
+                refreshKey={watchKey}
+                onMutate={() => setWatchKey(k => k + 1)}
+              />
               <div className="bg-panel border border-line rounded-xl p-4 text-xs text-muted">
                 <div className="font-medium text-white mb-1 flex items-center gap-1">
                   <RefreshCw size={12} /> Caching

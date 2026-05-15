@@ -2,7 +2,7 @@ import { Star, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getWatchlist, removeFromWatchlist } from '../lib/watchlist.js'
 
-export default function Watchlist({ onSelect, refreshKey }) {
+export default function Watchlist({ onSelect, refreshKey, onMutate }) {
   const [list, setList] = useState([])
 
   useEffect(() => {
@@ -12,6 +12,7 @@ export default function Watchlist({ onSelect, refreshKey }) {
   function remove(symbol, e) {
     e.stopPropagation()
     setList(removeFromWatchlist(symbol))
+    onMutate?.()
   }
 
   if (!list.length) {
