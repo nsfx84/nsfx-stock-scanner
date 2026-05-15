@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 
 import Sparkline from './Sparkline.jsx'
 import { getCryptoMarkets, clearCryptoCache } from '../lib/yahoo.js'
@@ -49,7 +49,23 @@ function pillarScore(row, key) {
   return p?.score ?? null
 }
 
-function Band({ band, onPickRow, defaultOpen }) {
+function SortableTh({ label, colKey, align = 'right', sortKey, sortDir, onSort, className = '' }) {
+  return (
+    <th
+      className={`py-2 px-2 ${align === 'right' ? 'text-right' : 'text-left'} cursor-pointer hover:text-white ${className}`}
+      onClick={() => onSort(colKey)}
+    >
+      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end w-full' : ''}`}>
+        {label}
+        {sortKey === colKey && (
+          sortDir === 'asc' ? <ArrowUp size={11} /> : <ArrowDown size={11} />
+        )}
+      </span>
+    </th>
+  )
+}
+
+function Band({ band, onPickRow, defaultOpen, sortKey, sortDir, onSort }) {
   const [open, setOpen] = useState(defaultOpen)
   if (!band || band.items.length === 0) return null
 
@@ -69,19 +85,19 @@ function Band({ band, onPickRow, defaultOpen }) {
         <div className="overflow-x-auto border border-t-0 border-line rounded-b">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-muted border-b border-line bg-panel/80">
-                <th className="text-left py-2 px-2 w-12">Rank</th>
+              <tr className="text-xs uppercase text-muted border-b border-line bg-panel/80">
+                <SortableTh label="Rank" colKey="rank" align="left" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="w-12" />
                 <th className="text-left py-2 px-2 min-w-[140px]">Coin</th>
-                <th className="text-right py-2 px-2">Price</th>
-                <th className="text-right py-2 px-2">24h</th>
-                <th className="text-right py-2 px-2">7d</th>
-                <th className="text-right py-2 px-2">30d</th>
-                <th className="text-right py-2 px-2">Score</th>
-                <th className="text-right py-2 px-2">Net</th>
-                <th className="text-right py-2 px-2">Tok</th>
-                <th className="text-right py-2 px-2">Mom</th>
-                <th className="text-right py-2 px-2">Liq</th>
-                <th className="text-right py-2 px-2">Mkt Cap</th>
+                <SortableTh label="Price" colKey="price" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="24h" colKey="24h" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="7d" colKey="7d" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="30d" colKey="30d" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Score" colKey="score" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Net" colKey="network" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Tok" colKey="tokenomics" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Mom" colKey="momentum" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Liq" colKey="liquidity" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortableTh label="Mkt Cap" colKey="marketCap" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
                 <th className="text-right py-2 px-2 w-24">7D</th>
               </tr>
             </thead>
@@ -152,6 +168,13 @@ export default function CryptoScreener({ onPickCoin }) {
   const [error, setError] = useState(null)
   const [refreshedAt, setRefreshedAt] = useState(null)
   const [fromCache, setFromCache] = useState(false)
+  const [sortKey, setSortKey] = useState('score')
+  const [sortDir, setSortDir] = useState('desc')
+
+  function onSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
 
   const load = useCallback(async (force = false) => {
     setLoading(true)
@@ -193,7 +216,38 @@ export default function CryptoScreener({ onPickCoin }) {
     load()
   }, [load])
 
-  const bands = useMemo(() => groupCryptoByVerdict(rows), [rows])
+  const bands = useMemo(() => {
+    const grouped = groupCryptoByVerdict(rows)
+
+    function compareRows(a, b) {
+      const getVal = (row, key) => {
+        if (key === 'rank') return row.market_cap_rank ?? Infinity
+        if (key === 'score') return row.composite ?? -Infinity
+        if (key === 'network') return row.pillars?.find(p => p.key === 'network')?.score ?? -Infinity
+        if (key === 'tokenomics') return row.pillars?.find(p => p.key === 'tokenomics')?.score ?? -Infinity
+        if (key === 'momentum') return row.pillars?.find(p => p.key === 'momentum')?.score ?? -Infinity
+        if (key === 'liquidity') return row.pillars?.find(p => p.key === 'liquidity')?.score ?? -Infinity
+        if (key === '24h') return row.pct24 ?? -Infinity
+        if (key === '7d') return row.pct7 ?? -Infinity
+        if (key === '30d') return row.pct30 ?? -Infinity
+        if (key === 'price') return row.current_price ?? -Infinity
+        if (key === 'marketCap') return row.market_cap ?? -Infinity
+        return 0
+      }
+      const av = getVal(a, sortKey)
+      const bv = getVal(b, sortKey)
+      return sortDir === 'asc' ? av - bv : bv - av
+    }
+
+    for (const k of Object.keys(grouped)) {
+      grouped[k] = {
+        ...grouped[k],
+        items: [...grouped[k].items].sort(compareRows)
+      }
+    }
+    return grouped
+  }, [rows, sortKey, sortDir])
+
   const bandList = [
     bands.strong,
     bands.solid,
@@ -255,6 +309,9 @@ export default function CryptoScreener({ onPickCoin }) {
               band={band}
               onPickRow={onPickCoin}
               defaultOpen={i < 2}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={onSort}
             />
           ))}
         </div>
