@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper } from 'lucide-react'
+import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper, ArrowLeft } from 'lucide-react'
 
 import SearchBar from './components/SearchBar.jsx'
 import ScoreCard from './components/ScoreCard.jsx'
@@ -150,7 +150,13 @@ export default function App() {
           </div>
           <div className="flex gap-1 bg-ink border border-line rounded-lg p-1">
             <button
-              onClick={() => setView('single')}
+              onClick={() => {
+                if (view === 'single' && symbol) {
+                  setSymbol(null)
+                } else {
+                  setView('single')
+                }
+              }}
               className={`px-3 py-1 text-sm rounded flex items-center gap-1.5 ${
                 view === 'single' ? 'bg-accent text-black' : 'text-muted hover:text-white'
               }`}
@@ -232,7 +238,14 @@ export default function App() {
         {view === 'single' && symbol && (
           <div className="grid md:grid-cols-[1fr_280px] gap-6">
             <div className="space-y-6">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSymbol(null)}
+                  className="flex items-center gap-1 text-sm text-muted hover:text-white"
+                >
+                  <ArrowLeft size={16} /> Back
+                </button>
                 <div className="font-mono text-2xl">{symbol}</div>
                 <button onClick={toggleStar} className="text-muted hover:text-warn">
                   <Star size={20} className={starred ? 'fill-warn text-warn' : ''} />
