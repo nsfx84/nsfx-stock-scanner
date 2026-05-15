@@ -11,6 +11,7 @@ import Watchlist from './components/Watchlist.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import Screener from './components/Screener.jsx'
 import DividendView from './components/DividendView.jsx'
+import CommandPalette from './components/CommandPalette.jsx'
 
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
@@ -28,6 +29,9 @@ export default function App() {
   const [starred, setStarred] = useState(false)
   const [watchKey, setWatchKey] = useState(0)
   const [cacheNote, setCacheNote] = useState('')
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
 
   useEffect(() => {
     if (!symbol) return
@@ -81,10 +85,37 @@ export default function App() {
     return () => { cancelled = true }
   }, [symbol])
 
+  useEffect(() => {
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setPaletteOpen(o => !o)
+      }
+      if (e.key === 'Escape' && paletteOpen) {
+        e.preventDefault()
+        setPaletteOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [paletteOpen])
+
+  function pushRecentTicker(sym) {
+    try {
+      const raw = sessionStorage.getItem('recent:tickers')
+      let arr = raw ? JSON.parse(raw) : []
+      if (!Array.isArray(arr)) arr = []
+      arr = arr.filter(s => s !== sym)
+      arr.unshift(sym)
+      sessionStorage.setItem('recent:tickers', JSON.stringify(arr.slice(0, 10)))
+    } catch {}
+  }
+
   function handleSelect(sym, name) {
     setSymbol(sym)
     setView('single')   // ensure we're in single-stock view when picking
     if (name) sessionStorage.setItem(`name:${sym}`, name)
+    pushRecentTicker(sym)
   }
 
   function toggleStar() {
@@ -144,8 +175,16 @@ export default function App() {
             ><Newspaper size={14} /> News</button>
           </div>
           {view === 'single' && <SearchBar onSelect={handleSelect} />}
-          <div className="ml-auto text-xs text-muted hidden md:block">
-            Yahoo Finance · unlimited · cached locally
+          <div className="ml-auto hidden md:flex items-center gap-2 text-xs text-muted">
+            <span>Yahoo Finance · unlimited · cached locally</span>
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="bg-line border border-line/50 text-muted px-1.5 py-0.5 rounded font-mono hover:text-white hover:border-line transition-colors"
+              title="Command palette"
+            >
+              Press {isMac ? '⌘' : 'Ctrl'}K
+            </button>
           </div>
         </div>
       </header>
@@ -250,6 +289,21 @@ export default function App() {
       <footer className="max-w-7xl mx-auto px-4 py-6 text-xs text-muted text-center">
         Data: Alpha Vantage. Educational use only. Not investment advice.
       </footer>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onSelect={(sym) => {
+          handleSelect(sym, '')
+          setPaletteOpen(false)
+        }}
+        currentView={view}
+        setView={(v) => {
+          setView(v)
+          setPaletteOpen(false)
+        }}
+        watchlist={getWatchlist()}
+      />
     </div>
   )
 }
