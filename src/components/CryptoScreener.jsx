@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 
 import Sparkline from './Sparkline.jsx'
 import { getCryptoMarkets, clearCryptoCache } from '../lib/yahoo.js'
-import { computeCryptoScore, groupCryptoByVerdict, STABLECOIN_RE } from '../lib/cryptoScore.js'
+import { computeCryptoScore, groupCryptoByVerdict, isStablecoin } from '../lib/cryptoScore.js'
 
 function scoreColor(s) {
   if (s == null) return 'text-muted'
@@ -159,9 +159,7 @@ export default function CryptoScreener({ onPickCoin }) {
     if (force) clearCryptoCache()
     try {
       const { data, fromCache: cached } = await getCryptoMarkets()
-      const filtered = (data || []).filter(
-        c => !STABLECOIN_RE.test(String(c.symbol || '').toUpperCase())
-      )
+      const filtered = (data || []).filter(c => !isStablecoin(c))
       const scored = filtered.map(coin => {
         const score = computeCryptoScore(coin)
         return {
@@ -210,6 +208,10 @@ export default function CryptoScreener({ onPickCoin }) {
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
           <h2 className="text-xl font-bold">Crypto Screener — top 100 by market cap</h2>
+          <p className="text-sm text-muted mt-2 max-w-2xl leading-relaxed">
+            Score is a quality filter, not a recommendation. Crypto markets are dominated by narrative
+            and liquidity flows that no fundamental score captures. Use as one input among many.
+          </p>
           <p className="text-sm text-muted mt-1">
             CoinGecko data · scored on network, tokenomics, momentum, and liquidity
           </p>

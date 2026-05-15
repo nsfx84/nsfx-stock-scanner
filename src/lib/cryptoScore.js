@@ -135,11 +135,12 @@ function scoreTokenomics(c) {
       note: ratio >= 0.85 ? 'Most supply already circulating' : 'Future dilution possible'
     })
   } else if (circ != null) {
+    const programmatic = c.id && ['ethereum', 'solana'].includes(c.id)
     metrics.push({
       name: 'Supply cap',
-      value: 'Uncapped',
-      score: 50,
-      note: 'uncapped supply'
+      value: programmatic ? 'Programmatic' : 'Uncapped',
+      score: programmatic ? 70 : 50,
+      note: programmatic ? 'Programmatic issuance' : 'uncapped supply'
     })
   }
 
@@ -322,4 +323,33 @@ export function groupCryptoByVerdict(rows) {
   return bands
 }
 
-export const STABLECOIN_RE = /^(USDT|USDC|DAI|FDUSD|TUSD|USDD|BUSD|FRAX|PYUSD|USDE)$/i
+export const STABLECOIN_RE = /^(USDT|USDC|DAI|FDUSD|TUSD|USDD|BUSD|FRAX|PYUSD|USDE|USDG)$/i
+
+const STABLECOIN_MCAP_FLOOR = 100_000_000
+
+/** True if coin looks like a stablecoin (symbol, name, or low 30d vol + large cap). */
+export function isStablecoin(coin) {
+  if (!coin) return false
+
+  const symbol = String(coin.symbol || '').toUpperCase()
+  if (STABLECOIN_RE.test(symbol)) return true
+
+  const nameLower = String(coin.name || '').toLowerCase()
+  if (nameLower.includes('usd') || nameLower.includes('dollar') || nameLower.includes('stable')) {
+    return true
+  }
+
+  const pct30 = pctFromCoin(coin, 'price_change_percentage_30d') ?? num(coin.price_change_percentage_30d)
+  const mcap = num(coin.market_cap?.usd ?? coin.market_cap)
+  if (
+    pct30 != null &&
+    mcap != null &&
+    mcap > STABLECOIN_MCAP_FLOOR &&
+    pct30 >= -2 &&
+    pct30 <= 2
+  ) {
+    return true
+  }
+
+  return false
+}
