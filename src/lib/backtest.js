@@ -109,23 +109,23 @@ function buildOverviewFromFundamentals(fundamentals, asOfDate, asOfClose) {
 
 async function fetchBenchmarkReturn(symbol, asOfDate) {
   const [hist, quote] = await Promise.all([
-    apiGet(`/historical-price/${symbol}?date=${encodeURIComponent(asOfDate)}`),
+    apiGet(`/historical/${symbol}?date=${encodeURIComponent(asOfDate)}`),
     apiGet(`/quote/${symbol}`).catch(() => null)
   ])
   const current = quote?.regularMarketPrice
-  if (hist?.close == null || current == null) return null
-  return (current - hist.close) / hist.close
+  if (hist?.price?.close == null || current == null) return null
+  return (current - hist.price.close) / hist.price.close
 }
 
 async function processTicker(symbol, asOfDate) {
   const sym = String(symbol).toUpperCase()
-  const [fundamentals, asOfPrice, daily, quote] = await Promise.all([
-    apiGet(`/historical-fundamentals/${sym}`),
-    apiGet(`/historical-price/${sym}?date=${encodeURIComponent(asOfDate)}`),
+  const [historical, daily, quote] = await Promise.all([
+    apiGet(`/historical/${sym}?date=${encodeURIComponent(asOfDate)}`),
     apiGet(`/daily/${sym}`),
     apiGet(`/quote/${sym}`).catch(() => null)
   ])
 
+  const { fundamentals, price: asOfPrice } = historical
   const overview = buildOverviewFromFundamentals(fundamentals, asOfDate, asOfPrice.close)
   const points = (daily.points || [])
     .filter(p => p.date <= asOfDate && p.close != null)

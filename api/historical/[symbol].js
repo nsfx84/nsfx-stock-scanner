@@ -5,12 +5,7 @@ function toDateStr(d) {
   return String(d).slice(0, 10)
 }
 
-export default wrap(async (req) => {
-  const symbol = (req.query.symbol || '').toString().toUpperCase()
-  const dateStr = (req.query.date || '').toString().trim()
-  if (!symbol) throw new Error('Missing symbol')
-  if (!dateStr) throw new Error('Missing date')
-
+async function historicalClose(symbol, dateStr) {
   const target = new Date(`${dateStr}T23:59:59Z`)
   if (Number.isNaN(target.getTime())) throw new Error('Invalid date')
 
@@ -40,4 +35,25 @@ export default wrap(async (req) => {
   }
 
   return { date: toDateStr(best.d), close: best.close }
+}
+
+export default wrap(async (req) => {
+  const symbol = (req.query.symbol || '').toString().toUpperCase()
+  const dateStr = (req.query.date || '').toString().trim()
+  if (!symbol) throw new Error('Missing symbol')
+  if (!dateStr) throw new Error('Missing date')
+
+  const modules = [
+    'incomeStatementHistory',
+    'balanceSheetHistory',
+    'cashflowStatementHistory',
+    'price'
+  ]
+
+  const [fundamentals, price] = await Promise.all([
+    yahooFinance.quoteSummary(symbol, { modules }),
+    historicalClose(symbol, dateStr)
+  ])
+
+  return { fundamentals, price }
 }, { cacheSeconds: 604800 })
