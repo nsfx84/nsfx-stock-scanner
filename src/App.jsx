@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper, ArrowLeft } from 'lucide-react'
+import { Star, Trash2, RefreshCw, TrendingUp, Layers, Search, DollarSign, Newspaper, ArrowLeft, BarChart3 } from 'lucide-react'
 
 import SearchBar from './components/SearchBar.jsx'
 import ScoreCard from './components/ScoreCard.jsx'
@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard.jsx'
 import Screener from './components/Screener.jsx'
 import DividendView from './components/DividendView.jsx'
 import CommandPalette from './components/CommandPalette.jsx'
+import Backtest from './components/Backtest.jsx'
 
 import { getOverview, getDaily, getEarnings, clearCache } from './lib/yahoo.js'
 import { computeScore } from './lib/score.js'
@@ -197,6 +198,12 @@ export default function App() {
                 view === 'news' ? 'bg-accent text-black' : 'text-muted hover:text-white'
               }`}
             ><Newspaper size={14} /> News</button>
+            <button
+              onClick={() => setView('backtest')}
+              className={`px-3 py-1 text-sm rounded flex items-center gap-1.5 ${
+                view === 'backtest' ? 'bg-accent text-black' : 'text-muted hover:text-white'
+              }`}
+            ><BarChart3 size={14} /> Backtest</button>
           </div>
           {view === 'single' && <SearchBar onSelect={handleSelect} />}
           <div className="ml-auto hidden md:flex items-center gap-2 text-xs text-muted">
@@ -222,6 +229,10 @@ export default function App() {
 
         {view === 'dividends' && (
           <DividendView onPickRow={(sym) => handleSelect(sym, '')} />
+        )}
+
+        {view === 'backtest' && (
+          <Backtest />
         )}
 
         {view === 'news' && (

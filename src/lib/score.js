@@ -306,6 +306,27 @@ function rollup(metrics) {
   return { score: Math.round(avg), metrics, coverage: valid.length }
 }
 
+/** 3-pillar composite for backtests (no historical analyst data). */
+export function computeBacktestScore({ overview, points }) {
+  const fundamentals = scoreFundamentals(overview || {})
+  const momentum = scoreMomentum(points || [])
+  const growth = scoreGrowth(overview || {}, null)
+
+  const pillars = [
+    { key: 'fundamentals', label: 'Fundamentals', weight: 0.40, ...fundamentals },
+    { key: 'momentum', label: 'Momentum', weight: 0.35, ...momentum },
+    { key: 'growth', label: 'Growth', weight: 0.25, ...growth }
+  ]
+
+  const present = pillars.filter(p => p.score != null)
+  const totalW = present.reduce((a, p) => a + p.weight, 0)
+  const composite = present.length > 0
+    ? Math.round(present.reduce((a, p) => a + p.score * (p.weight / totalW), 0))
+    : null
+
+  return { composite, pillars, coverage: present.length / pillars.length }
+}
+
 export function computeScore({ overview, points, earnings, currentPrice }) {
   const fundamentals = scoreFundamentals(overview || {})
   const momentum    = scoreMomentum(points || [])
