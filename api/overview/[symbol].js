@@ -39,6 +39,10 @@ Rules:
 - context: one sentence explaining the relationship
 - confidence: exactly one of "high", "medium", "low"
 - revenueConcentration: array of {name, percent, context} if revenue concentration is mentioned, else []
+- ONLY include entries that are NAMED, identifiable companies or entities — never abstract categories
+- REJECT generic terms like "original equipment manufacturers", "system integrators", "distributors", "public cloud service providers", "add-in-board manufacturers", "telco operators", "automotive OEMs", "tier-1 suppliers", "retailers", "wholesalers"
+- A valid entry has either a proper noun company name (e.g. "Microsoft", "TSMC") OR a specific descriptor that uniquely identifies a real organization (e.g. "the US Department of Defense")
+- If the source text only describes categories of customers without naming specific companies, return an EMPTY items array — do not list the categories
 
 Business summary:
 ${summary}`
