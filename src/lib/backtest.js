@@ -59,6 +59,15 @@ async function apiGet(path) {
   return res.json()
 }
 
+async function fetchQuote(symbol) {
+  try {
+    const r = await apiGet(`/quotes?symbols=${encodeURIComponent(symbol)}`)
+    return (r.quotes || [])[0] ?? null
+  } catch {
+    return null
+  }
+}
+
 function buildOverviewFromFundamentals(fundamentals, asOfDate, asOfClose) {
   const income = pickAnnualBefore(fundamentals?.incomeStatementHistory, asOfDate)
   const priorIncome = pickPriorAnnual(fundamentals?.incomeStatementHistory, asOfDate)
@@ -110,7 +119,7 @@ function buildOverviewFromFundamentals(fundamentals, asOfDate, asOfClose) {
 async function fetchBenchmarkReturn(symbol, asOfDate) {
   const [hist, quote] = await Promise.all([
     apiGet(`/historical/${symbol}?date=${encodeURIComponent(asOfDate)}`),
-    apiGet(`/quote/${symbol}`).catch(() => null)
+    fetchQuote(symbol)
   ])
   const current = quote?.regularMarketPrice
   if (hist?.price?.close == null || current == null) return null
@@ -122,7 +131,7 @@ async function processTicker(symbol, asOfDate) {
   const [historical, daily, quote] = await Promise.all([
     apiGet(`/historical/${sym}?date=${encodeURIComponent(asOfDate)}`),
     apiGet(`/daily/${sym}`),
-    apiGet(`/quote/${sym}`).catch(() => null)
+    fetchQuote(sym)
   ])
 
   const { fundamentals, price: asOfPrice } = historical

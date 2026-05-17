@@ -146,8 +146,8 @@ export async function getQuote(symbol) {
   const hit = readCache(key, TTL.quotes)
   if (hit) return hit
   try {
-    const r = await get(`/quote/${encodeURIComponent(sym)}`)
-    const q = r.quote || null
+    const r = await get(`/quotes?symbols=${encodeURIComponent(sym)}`)
+    const q = (r.quotes || [])[0] || null
     if (q) writeCache(key, q)
     return q
   } catch {
