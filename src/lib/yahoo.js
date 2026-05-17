@@ -203,6 +203,23 @@ export async function getPeers(symbol) {
   }
 }
 
+export async function getPartners(symbol) {
+  const sym = String(symbol || '').trim().toUpperCase()
+  if (!sym) return null
+  const key = cacheKey('partners', sym)
+  const ttl = 7 * 24 * 60 * 60 * 1000
+  const hit = readCache(key, ttl)
+  if (hit) return hit
+  try {
+    const r = await get(`/overview/${sym}?include=partners`)
+    const partners = r.partners || null
+    if (partners) writeCache(key, partners)
+    return partners
+  } catch {
+    return null
+  }
+}
+
 export async function getQuotes(symbols) {
   if (!symbols?.length) return []
   const sorted = [...symbols].map(s => String(s).trim()).filter(Boolean).sort()

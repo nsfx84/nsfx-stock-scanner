@@ -6,6 +6,7 @@ import ScoreCard from './components/ScoreCard.jsx'
 import PriceChart from './components/PriceChart.jsx'
 import OverviewPanel from './components/OverviewPanel.jsx'
 import CompetitorTable from './components/CompetitorTable.jsx'
+import PartnersPanel from './components/PartnersPanel.jsx'
 import NewsPanel from './components/NewsPanel.jsx'
 import Watchlist from './components/Watchlist.jsx'
 import Dashboard from './components/Dashboard.jsx'
@@ -324,6 +325,7 @@ export default function App() {
               {points     && <PriceChart points={points} />}
               {overview   && <OverviewPanel overview={overview} />}
               {overview   && <CompetitorTable symbol={symbol} />}
+              {overview   && <PartnersPanel symbol={symbol} />}
               {overview   && <NewsPanel symbol={symbol} refreshKey={watchKey} />}
             </div>
 
