@@ -46,6 +46,20 @@ export const MANUAL_PARTNERS = {
       { name: 'TSMC', ticker: 'TSM', relationship: 'Supplier', context: 'Manufactures Tesla\'s in-house FSD/Dojo chips on advanced process nodes.', confidence: 'high' }
     ],
     revenueConcentration: []
+  },
+  MU: {
+    items: [
+      { name: 'Apple', ticker: 'AAPL', relationship: 'Customer', context: 'Long-standing NAND and DRAM supplier for iPhones, iPads, and Macs.', confidence: 'high' },
+      { name: 'Microsoft', ticker: 'MSFT', relationship: 'Customer', context: 'Azure data center memory and Surface device DRAM/NAND.', confidence: 'high' },
+      { name: 'Meta Platforms', ticker: 'META', relationship: 'Customer', context: 'AI infrastructure HBM (High Bandwidth Memory) for GPU training systems.', confidence: 'high' },
+      { name: 'Alphabet (Google)', ticker: 'GOOGL', relationship: 'Customer', context: 'Google Cloud DRAM and HBM for TPU and AI infrastructure.', confidence: 'high' },
+      { name: 'NVIDIA', ticker: 'NVDA', relationship: 'Customer', context: 'HBM3E supplier for H200 and B100/B200 AI accelerators — qualified alongside SK Hynix and Samsung.', confidence: 'high' },
+      { name: 'AMD', ticker: 'AMD', relationship: 'Customer', context: 'Memory supplier for AMD EPYC and Instinct accelerator platforms.', confidence: 'medium' },
+      { name: 'Western Digital', ticker: 'WDC', relationship: 'Competitor', context: 'Primary NAND flash competitor — both joint-ventured with Kioxia for production previously.', confidence: 'high' },
+      { name: 'SK Hynix', ticker: '000660.KS', relationship: 'Competitor', context: 'Leading DRAM/HBM competitor — currently ahead in HBM3E qualification with NVIDIA.', confidence: 'high' },
+      { name: 'Samsung Electronics', ticker: '005930.KS', relationship: 'Competitor', context: 'Largest memory competitor globally in both DRAM and NAND segments.', confidence: 'high' }
+    ],
+    revenueConcentration: []
   }
 }
 
