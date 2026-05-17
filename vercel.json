@@ -7,11 +7,5 @@
     "api/**/*.js": {
       "maxDuration": 10
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/quote/:symbol",
-      "destination": "/api/quote.js?symbol=:symbol"
-    }
-  ]
+  }
 }

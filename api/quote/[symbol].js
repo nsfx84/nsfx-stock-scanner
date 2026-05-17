@@ -1,4 +1,4 @@
-import { yahooFinance, wrap } from './_lib/yahoo.js'
+import { yahooFinance, wrap } from '../_lib/yahoo.js'
 
 function mapQuote(q) {
   return {
@@ -11,7 +11,7 @@ function mapQuote(q) {
 }
 
 export default wrap(async (req) => {
-  // Pull the ticker symbol from the query parameters
+  // Vercel auto-populates req.query.symbol from the [symbol].js filename match
   const symbol = (req.query.symbol || '').toString().trim().toUpperCase()
   if (!symbol) throw new Error('Missing symbol parameter')
 
