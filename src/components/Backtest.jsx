@@ -29,6 +29,7 @@ function fmtPct(v) {
   return `${(v * 100).toFixed(1)}%`
 }
 
+// Simple text color mapping matching your dark dashboard theme
 function returnColor(pct) {
   if (pct == null || Number.isNaN(pct)) return 'text-muted'
   const p = pct * 100
@@ -363,8 +364,12 @@ export default function Backtest() {
                   <Tooltip
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null
-                      const p = payload[0]?.payload
-                      if (!p) return null
+                      
+                      // Pull carefully across standard entries or coordinate references
+                      const scatterPoint = payload.find(p => p.name === 'Score' || p.dataKey === 'score' || p.payload?.symbol);
+                      const p = scatterPoint?.payload;
+                      
+                      if (!p || !p.symbol) return null
                       return (
                         <div className="rounded-lg border border-line bg-panel px-3 py-2 text-xs shadow-lg">
                           <p className="font-mono text-white">
