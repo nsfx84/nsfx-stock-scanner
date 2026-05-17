@@ -1,4 +1,4 @@
-// Yahoo Finance client. Talks to our serverless API endpoints.
+// Shared Yahoo Finance client + helpers for all serverless functions.
 //
 // In development (vercel dev) and production, API routes live under /api
 // on the same origin as the frontend, so a relative path works in both.
@@ -11,14 +11,14 @@
 const API_BASE = '/api'
 
 const TTL = {
-  daily:    6 * 60 * 60 * 1000,
-  overview: 6 * 60 * 60 * 1000,
-  earnings: 24 * 60 * 60 * 1000,
-  search:   24 * 60 * 60 * 1000,
-  news:     30 * 60 * 1000,
-  quotes:   60 * 1000,
+  daily:      6 * 60 * 60 * 1000,
+  overview:   6 * 60 * 60 * 1000,
+  earnings:  24 * 60 * 60 * 1000,
+  search:    24 * 60 * 60 * 1000,
+  news:       30 * 60 * 1000,
+  quotes:     60 * 1000,
   sparklines: 60 * 60 * 1000,
-  regime:   6 * 60 * 60 * 1000,
+  regime:     6 * 60 * 60 * 1000,
   cryptoMarkets: 30 * 60 * 1000,
   cryptoCoin: 60 * 60 * 1000
 }
@@ -124,20 +124,21 @@ function flattenEarnings(qs) {
 
 // --- Public API (same shape as old alphaVantage.js) ---
 
-export async function searchSymbol(keywords) {
-  if (!keywords) return []
-  const key = cacheKey('search', keywords.toLowerCase())
-  const hit = readCache(key, TTL.search)
+export async function getQuote(symbol) {
+  const sym = String(symbol || '').trim().toUpperCase()
+  if (!sym) return null
+  const key = cacheKey('quote', sym)
+  const hit = readCache(key, TTL.quotes)
   if (hit) return hit
-  const r = await get(`/search?q=${encodeURIComponent(keywords)}`)
-  const out = (r.quotes || []).map(q => ({
-    symbol: q.symbol,
-    name: q.name,
-    region: 'United States',
-    currency: 'USD'
-  }))
-  writeCache(key, out)
-  return out
+  try {
+    // Points directly to the native dynamic folder path /api/quote/AAPL
+    const r = await get(`/quote/${encodeURIComponent(sym)}`)
+    const q = r.quote || null
+    if (q) writeCache(key, q)
+    return q
+  } catch {
+    return null
+  }
 }
 
 export async function getQuote(symbol) {
@@ -147,8 +148,9 @@ export async function getQuote(symbol) {
   const hit = readCache(key, TTL.quotes)
   if (hit) return hit
   try {
-    const r = await get(`/quotes?symbols=${encodeURIComponent(sym)}`)
-    const q = (r.quotes || [])[0] || null
+    // Fixed: Maps directly to the uniform singular quote route handling rewriting natively
+    const r = await get(`/quote/${encodeURIComponent(sym)}`)
+    const q = r.quote || null
     if (q) writeCache(key, q)
     return q
   } catch {
