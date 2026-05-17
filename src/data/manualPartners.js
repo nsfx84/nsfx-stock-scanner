@@ -36,6 +36,16 @@ export const MANUAL_PARTNERS = {
       { name: 'Alphabet (Google)', ticker: 'GOOGL', relationship: 'Customer', context: 'Google Cloud deploys AMD EPYC processors in compute instances.', confidence: 'high' }
     ],
     revenueConcentration: []
+  },
+  TSLA: {
+    items: [
+      { name: 'Panasonic', ticker: '6752.T', relationship: 'Supplier', context: 'Battery cell partner at Gigafactory Nevada. Long-standing 2170 cell production.', confidence: 'high' },
+      { name: 'CATL', ticker: '300750.SZ', relationship: 'Supplier', context: 'Primary battery supplier for Model 3/Y produced in Shanghai. LFP cells.', confidence: 'high' },
+      { name: 'LG Energy Solution', ticker: '373220.KS', relationship: 'Supplier', context: 'Battery supplier for Model Y from Shanghai factory, expanding to other models.', confidence: 'high' },
+      { name: 'NVIDIA', ticker: 'NVDA', relationship: 'Supplier', context: 'Historically supplied GPUs for Tesla AI training infrastructure (Dojo era predecessor).', confidence: 'medium' },
+      { name: 'TSMC', ticker: 'TSM', relationship: 'Supplier', context: 'Manufactures Tesla\'s in-house FSD/Dojo chips on advanced process nodes.', confidence: 'high' }
+    ],
+    revenueConcentration: []
   }
 }
 
