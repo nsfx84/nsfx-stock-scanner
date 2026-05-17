@@ -1,4 +1,4 @@
-// Shared Yahoo Finance client + helpers for all serverless functions.
+// Yahoo Finance client. Talks to our serverless API endpoints.
 //
 // In development (vercel dev) and production, API routes live under /api
 // on the same origin as the frontend, so a relative path works in both.
@@ -102,7 +102,7 @@ function flattenOverview(qs, quote) {
     PayoutRatio:             v(summary.payoutRatio),
     DividendPerShare:        v(summary.dividendRate),
     TrailingAnnualDividendRate: v(summary.trailingAnnualDividendRate),
-    DividendGrowth5Y:        v(stats.fiveYearAvgDividendYield),  // approximation; Yahoo doesn't directly expose 5y div growth
+    DividendGrowth5Y:        v(stats.fiveYearAvgDividendYield),
     FreeCashFlow:            v(fin.freeCashflow),
     SharesOutstanding:       v(stats.sharesOutstanding) ?? v(price.sharesOutstanding)
   }
@@ -110,7 +110,6 @@ function flattenOverview(qs, quote) {
 
 function flattenEarnings(qs) {
   const hist = qs.earningsHistory?.history || []
-  // Map to Alpha Vantage shape: { quarterlyEarnings: [{ estimatedEPS, reportedEPS }] }
   const quarterlyEarnings = hist
     .filter(h => h.epsActual?.raw != null && h.epsEstimate?.raw != null)
     .map(h => ({
@@ -118,27 +117,26 @@ function flattenEarnings(qs) {
       reportedEPS:  h.epsActual?.raw,
       quarter:      h.quarter?.fmt
     }))
-    .reverse() // most recent first
+    .reverse()
   return { quarterlyEarnings }
 }
 
 // --- Public API (same shape as old alphaVantage.js) ---
 
-export async function getQuote(symbol) {
-  const sym = String(symbol || '').trim().toUpperCase()
-  if (!sym) return null
-  const key = cacheKey('quote', sym)
-  const hit = readCache(key, TTL.quotes)
+export async function searchSymbol(keywords) {
+  if (!keywords) return []
+  const key = cacheKey('search', keywords.toLowerCase())
+  const hit = readCache(key, TTL.search)
   if (hit) return hit
-  try {
-    // Points directly to the native dynamic folder path /api/quote/AAPL
-    const r = await get(`/quote/${encodeURIComponent(sym)}`)
-    const q = r.quote || null
-    if (q) writeCache(key, q)
-    return q
-  } catch {
-    return null
-  }
+  const r = await get(`/search?q=${encodeURIComponent(keywords)}`)
+  const out = (r.quotes || []).map(q => ({
+    symbol: q.symbol,
+    name: q.name,
+    region: 'United States',
+    currency: 'USD'
+  }))
+  writeCache(key, out)
+  return out
 }
 
 export async function getQuote(symbol) {
@@ -148,7 +146,6 @@ export async function getQuote(symbol) {
   const hit = readCache(key, TTL.quotes)
   if (hit) return hit
   try {
-    // Fixed: Maps directly to the uniform singular quote route handling rewriting natively
     const r = await get(`/quote/${encodeURIComponent(sym)}`)
     const q = r.quote || null
     if (q) writeCache(key, q)
@@ -162,7 +159,6 @@ export async function getOverview(symbol) {
   const key = cacheKey('overview', symbol)
   const hit = readCache(key, TTL.overview)
   if (hit) return { data: hit, fromCache: true }
-  // Pull quoteSummary + a quick quote so we have current price/name as a fallback
   const [qs, quote] = await Promise.all([
     get(`/overview/${symbol}`),
     getQuote(symbol)
